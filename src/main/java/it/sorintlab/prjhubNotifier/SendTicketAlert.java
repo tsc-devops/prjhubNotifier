@@ -20,7 +20,7 @@ import org.apache.log4j.Logger;
 
 public class SendTicketAlert {
 	
-	final static Logger logger = Logger.getLogger(it.sorintlab.prjhubNotifier.SendTicketAlert.class);
+final static Logger logger = Logger.getLogger(SendTicketAlert.class);
 	
 	private String userMail="";
 	private String passwordMail="";
@@ -268,7 +268,6 @@ public class SendTicketAlert {
 	public boolean getValidConfigProperties() {
 		return this.validConfigProperties;
 	}
-	
 	
 	
 }

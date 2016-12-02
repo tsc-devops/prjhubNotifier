@@ -3,6 +3,7 @@ package it.sorintlab.prjhubNotifier;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.Properties;
 
 import org.apache.log4j.Level;
@@ -20,7 +21,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlTextInput;
 
 public class PrjHub_Parser {
 	
-	final static Logger logger = Logger.getLogger(it.sorintlab.prjhubNotifier.PrjHub_Parser.class);
+	final static Logger logger = Logger.getLogger(PrjHub_Parser.class);
 
 	private int counter = 1;
 	private HtmlPage prj_issues = null;
@@ -116,7 +117,7 @@ public class PrjHub_Parser {
 			else{
 				prj_issues.refresh(); // il refresh con 2 pagine non va
 			}
-			Thread.sleep(8000); // aspetto 8 secondi
+			Thread.sleep(300000); // aspetto 8 secondi   5minuti=300 secondi
 			String issuesAsXmlOpen = prj_issues.asXml();
 			if (issuesAsXmlOpen.contains("Total issues")) {
 				// leggiamo il testo della pagina e ricaviamo il numero totale delle issues
@@ -135,7 +136,13 @@ public class PrjHub_Parser {
 							break;
 						}
 						else{   // bisogna rileggere la pagina
-							logger.info("ERRORE NON C'� IL NUMERO DELLE ISSUE APERTE");
+							logger.info("ERRORE NON C'e'IL NUMERO DELLE ISSUE APERTE");
+							
+							// cancelliamo i cookie e la cache
+							URL url=new URL(this.getPagePrjhubLogin());
+							webClient.getCookies(url).clear();
+							webClient.getCache().clear();
+							doParse();
 						}
 					}
 				}	
@@ -150,46 +157,6 @@ public class PrjHub_Parser {
 		}
 	}
 
-	/*
-	public void parsePrj2() {
-
-		System.out.println("METODO parsePrj2");
-		try {
-			prj_issues.refresh(); // il refresh con 2 pagine non va
-			Thread.sleep(8000);
-			String issuesAsXmlOpen = prj_issues.asXml();
-			if (issuesAsXmlOpen.contains("Total issues")) {
-				// leggiamo il testo della pagina e ricaviamo il numero totale delle issues
-				String[] split=issuesAsXmlOpen.split("\\r?\\n");
-				for(int i=0;i<split.length;i++){
-					String s=split[i];
-					if(s.contains("Total issues")){
-						String [] numbers=s.split(" ");
-						//System.out.println(numbers);
-						System.out.println("length " + numbers.length);
-						// alcune volte non c'� il numero
-						if(numbers.length==14){     // c� il numero
-							old_total_issues=Integer.parseInt(numbers[numbers.length-1]);
-							
-							System.out.println("*** TOTAL ISSUES: " + old_total_issues);
-							break;
-						}
-						else{   // bisogna rileggere la pagina
-							System.out.println("ERRORE NON C'� IL NUMERO DELLE ISSUE APERTE");
-						}
-					}
-				}	
-				done();
-			} 	
-			else {
-				webClient.close();
-				doParse();
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	*/
 	
 	protected void doInBackground() {
 		logger.info("METODO doinbackgroud");
