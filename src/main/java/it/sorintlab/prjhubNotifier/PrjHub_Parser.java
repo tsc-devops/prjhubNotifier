@@ -204,7 +204,7 @@ public class PrjHub_Parser {
 		Properties prop = new Properties();
 		InputStream input = null;
 		
-		String filename = "configPrjhub.properties";
+		String filename = "configPrjHub.properties";
 		
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
 		input = classloader.getResourceAsStream(filename);
