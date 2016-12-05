@@ -27,7 +27,7 @@ public class PrjHub_Parser {
 	private HtmlPage prj_issues = null;
 	private int total_issues=0;
 	private int old_total_issues = 0;
-	private final WebClient webClient = new WebClient(BrowserVersion.CHROME);
+	private WebClient webClient = null;
 	private SendTicketAlert sendTicketAlert=null;
 	
 	private String loginGithub="";
@@ -39,14 +39,8 @@ public class PrjHub_Parser {
 	public void doParse() {
 		
 		logger.info("METODO doParse");
-		
-		// serve per commentare i log di htmlunit
-		Logger.getLogger("com.gargoylesoftware").setLevel(Level.OFF);
-		
+			
 		try {
-			webClient.getOptions().setJavaScriptEnabled(true);
-			webClient.getOptions().setThrowExceptionOnScriptError(false);
-			webClient.getOptions().setThrowExceptionOnFailingStatusCode(false);
 			
 			logger.info("STARTED... OPENING PRJHUB AND SEARCHING FOR TOTAL ISSUES (TAKES A WHILE, APROX. 30 seconds)");
 			HtmlPage html_page = null;
@@ -89,15 +83,18 @@ public class PrjHub_Parser {
 					final HtmlButton auth_button = (HtmlButton) auth_form
 							.getFirstByXPath("//*[@id='js-pjax-container']/div[1]/div/div[2]/div/div[1]/form/p/button");
 					auth_button.click();
+					// prende il pulsante, lo clicca, cosi non sei piu bloccato
+					
+					
 					Thread.sleep(3000);
-					parsePrj(false);
+					parsePrj();
 				} else {
 					logger.info("*** NOT LOGGED IN; SO DONE IT, AND NO AUTH BLOCK ***");
-					parsePrj(false);
+					parsePrj();
 				}
 			} else {
 				logger.info("*** ALREADY LOGGED IN ***");
-				parsePrj(false);
+				parsePrj();
 			}
 		} catch (Exception e) {
 			logger.info("*** CATCHED EXCEPTION. ERROR IN PAGE PARSING ***");
@@ -107,18 +104,20 @@ public class PrjHub_Parser {
 		}
 	}
 
-	public void parsePrj(boolean refresh) {
+	public void parsePrj() {
 		logger.info("METODO parsePrj");
 		try {
-			// sono loggato
-			if(refresh==false){
-				prj_issues = webClient.getPage(this.getPageTotalIssuesPrjhub());
-			}
-			else{
-				prj_issues.refresh(); // il refresh con 2 pagine non va
-			}
-			Thread.sleep(300000); // aspetto 8 secondi   5minuti=300 secondi
+			// loggato
+			prj_issues = webClient.getPage(this.getPageTotalIssuesPrjhub());
+			
+			
+			Thread.sleep(60000);   //1 minuto
+			
+			
 			String issuesAsXmlOpen = prj_issues.asXml();
+			
+			Boolean correctLength=false;
+			
 			if (issuesAsXmlOpen.contains("Total issues")) {
 				// leggiamo il testo della pagina e ricaviamo il numero totale delle issues
 				String[] split=issuesAsXmlOpen.split("\\r?\\n");  // splitto sugli a capo
@@ -128,27 +127,30 @@ public class PrjHub_Parser {
 						String [] numbers=s.split(" ");
 						//System.out.println(numbers);
 						logger.info("length " + numbers.length);
-						// alcune volte non c'� il numero
+						// alcune volte non c'è il numero
 						
-						if(numbers.length==14){     // c� il numero
-							old_total_issues=Integer.parseInt(numbers[numbers.length-1]);
-							logger.info("*** TOTAL ISSUES: " + old_total_issues);
+						if(numbers.length==14){     // c'è il numero
+							total_issues=Integer.parseInt(numbers[numbers.length-1]);
+							logger.info("*** TOTAL ISSUES: " + total_issues);
+							correctLength=true;
 							break;
 						}
 						else{   // bisogna rileggere la pagina
 							logger.info("ERRORE NON C'e'IL NUMERO DELLE ISSUE APERTE");
-							
-							// cancelliamo i cookie e la cache
-							URL url=new URL(this.getPagePrjhubLogin());
-							webClient.getCookies(url).clear();
-							webClient.getCache().clear();
-							doParse();
+							correctLength=false;
+							break;
 						}
 					}
-				}	
-				done();
+				}
+				if(correctLength==true){
+					done();
+				}
+				else{
+					doParse();
+				}
 			} 
 			else {
+				logger.info("LA PAGINA NON CONTIENE IL CAMPO TOTAL ISSUES");
 				webClient.close();
 				doParse();
 			}
@@ -157,14 +159,24 @@ public class PrjHub_Parser {
 		}
 	}
 
-	
-	protected void doInBackground() {
+	// metodo di inizializzazione
+	protected void doInBackground() {    
+		
 		logger.info("METODO doinbackgroud");
 		
+		// serve per commentare i log di htmlunit
+		Logger.getLogger("com.gargoylesoftware").setLevel(Level.OFF);
+		
+		webClient = new WebClient(BrowserVersion.CHROME);
+		webClient.getOptions().setJavaScriptEnabled(true);
+		webClient.getOptions().setThrowExceptionOnScriptError(false);
+		webClient.getOptions().setThrowExceptionOnFailingStatusCode(false);
+		
 		sendTicketAlert=new SendTicketAlert();
-		if(sendTicketAlert.getValidConfigProperties()==true){   //il file di configurazione delle mail � settato correttamente
+		
+		if(sendTicketAlert.getValidConfigProperties()==true){   //il file di configurazione delle mail ï¿½ settato correttamente
 			boolean validConfig=readConfigProperties();
-			if(validConfig==true){ //il file di configurazione di PrjJub � settato correttamente
+			if(validConfig==true){ //il file di configurazione di PrjJub ï¿½ settato correttamente
 				doParse();
 			}
 			else{
@@ -191,10 +203,21 @@ public class PrjHub_Parser {
 		}
 		logger.info("total = " + total_issues + "     old total = " + old_total_issues);
 		old_total_issues = total_issues;
-		parsePrj(true);
+		
+		// cancelliamo i cookie e la cache
+		webClient.getCookieManager().clearCookies();
+		webClient.getCache().clear();
+		
+		try {
+			Thread.sleep(240000);    //4minuti=240 secondi
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}   
+		
+		doParse();
 	}
 	
-	// lettura del file delle propriet�
+	// lettura del file delle proprietï¿½
 	private boolean readConfigProperties(){
 		
 		logger.info("CARICAMENTO PROPRIETA' FILE CONFIGPRJHUB.PROPERTIES");
@@ -208,7 +231,6 @@ public class PrjHub_Parser {
 		
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
 		input = classloader.getResourceAsStream(filename);
-		
 
 		try {
 			prop.load(input);
@@ -242,10 +264,10 @@ public class PrjHub_Parser {
 			validProperties=false;
 		}
 
-		logger.info("login = " + this.getLoginGithub());
-		logger.info("password = " + this.getPasswordGithub());
-		logger.info("pagePrjhubLogin = " + this.getPagePrjhubLogin());
-		logger.info("pageTotalIssuesPrjhub = " + this.getPageTotalIssuesPrjhub());
+		//logger.info("login = " + this.getLoginGithub());
+		//logger.info("password = " + this.getPasswordGithub());
+		//logger.info("pagePrjhubLogin = " + this.getPagePrjhubLogin());
+		//logger.info("pageTotalIssuesPrjhub = " + this.getPageTotalIssuesPrjhub());
 		
 		try {
 			input.close();

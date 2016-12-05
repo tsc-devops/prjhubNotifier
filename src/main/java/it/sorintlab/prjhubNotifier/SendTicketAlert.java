@@ -20,7 +20,7 @@ import org.apache.log4j.Logger;
 
 public class SendTicketAlert {
 	
-final static Logger logger = Logger.getLogger(SendTicketAlert.class);
+	final static Logger logger = Logger.getLogger(SendTicketAlert.class);
 	
 	private String userMail="";
 	private String passwordMail="";
@@ -160,15 +160,15 @@ final static Logger logger = Logger.getLogger(SendTicketAlert.class);
 		}
 
 
-		logger.info("Login = " + this.getUserMail());
-		logger.info("Password = " + this.getPasswordMail());
-		logger.info("UserMailFrom = " + this.getUserMailFrom());
-		logger.info("UserMailTo = " + this.getUserMailTo());
-		logger.info("Mail_smtp_host = " + this.getMail_smtp_host());
-		logger.info("Mail_smtp_socketFactory_port = " + this.getMail_smtp_socketFactory_port());
-		logger.info("Mail_smtp_socketFactory_class = " + this.getMail_smtp_socketFactory_class());
-		logger.info("Mail_smtp_auth = " + this.getMail_smtp_auth());
-		logger.info("Mail_smtp_port = " + this.getMail_smtp_port());
+		//logger.info("Login = " + this.getUserMail());
+		//logger.info("Password = " + this.getPasswordMail());
+		//logger.info("UserMailFrom = " + this.getUserMailFrom());
+		//logger.info("UserMailTo = " + this.getUserMailTo());
+		//logger.info("Mail_smtp_host = " + this.getMail_smtp_host());
+		//logger.info("Mail_smtp_socketFactory_port = " + this.getMail_smtp_socketFactory_port());
+		//logger.info("Mail_smtp_socketFactory_class = " + this.getMail_smtp_socketFactory_class());
+		//logger.info("Mail_smtp_auth = " + this.getMail_smtp_auth());
+		//logger.info("Mail_smtp_port = " + this.getMail_smtp_port());
 
 		try {
 			input.close();
@@ -268,6 +268,8 @@ final static Logger logger = Logger.getLogger(SendTicketAlert.class);
 	public boolean getValidConfigProperties() {
 		return this.validConfigProperties;
 	}
+	
+	
 	
 	
 }
